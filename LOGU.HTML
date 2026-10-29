@@ -1,0 +1,287 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>College Shortest Path Finder</title>
+
+    <style>
+        body {
+            background-color: mistyrose;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 30px 10px;
+        }
+
+        table {
+            background-color: white;
+            border: 2px solid black;
+            border-radius: 10px;
+        }
+
+        h1 {
+            color: darkblue;
+        }
+
+        h2 {
+            color: darkgreen;
+        }
+
+        input, select {
+            padding: 10px;
+            width: 250px;
+            border: 1px solid gray;
+            border-radius: 5px;
+            font-size: 15px;
+        }
+
+        input[type="submit"] {
+            background-color: darkblue;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        input[type="submit"]:hover {
+            background-color: royalblue;
+        }
+
+        #result {
+            color: darkgreen;
+            font-weight: bold;
+            line-height: 1.8;
+            overflow-wrap: anywhere;
+        }
+
+        .place {
+            font-size: 38px;
+            padding: 8px;
+        }
+
+        .caption {
+            font-size: 13px;
+            color: #444;
+        }
+
+        .note {
+            font-size: 13px;
+            color: gray;
+        }
+    </style>
+
+    <script>
+        const places = [
+            "Main Gate",
+            "Library",
+            "Canteen",
+            "CSE Block",
+            "Laboratory",
+            "Auditorium"
+        ];
+
+        const INF = Infinity;
+
+        // Distances between locations in meters
+        const graph = [
+            [0,   100, 200, INF, INF, INF],
+            [100, 0,   50,  150, INF, INF],
+            [200, 50,  0,   100, 200, INF],
+            [INF, 150, 100, 0,   50,  120],
+            [INF, INF, 200, 50,  0,   80],
+            [INF, INF, INF, 120, 80,  0]
+        ];
+
+        function findShortestPath(event) {
+            event.preventDefault();
+
+            const source = Number(
+                document.getElementById("source").value
+            );
+
+            const destination = Number(
+                document.getElementById("destination").value
+            );
+
+            const n = places.length;
+            const dist = Array(n).fill(INF);
+            const visited = Array(n).fill(false);
+            const parent = Array(n).fill(-1);
+
+            dist[source] = 0;
+
+            // Dijkstra's algorithm
+            for (let count = 0; count < n; count++) {
+                let u = -1;
+
+                for (let i = 0; i < n; i++) {
+                    if (!visited[i] &&
+                        (u === -1 || dist[i] < dist[u])) {
+                        u = i;
+                    }
+                }
+
+                if (u === -1 || dist[u] === INF) {
+                    break;
+                }
+
+                visited[u] = true;
+
+                for (let v = 0; v < n; v++) {
+                    if (!visited[v] &&
+                        graph[u][v] !== INF &&
+                        graph[u][v] > 0 &&
+                        dist[u] + graph[u][v] < dist[v]) {
+
+                        dist[v] = dist[u] + graph[u][v];
+                        parent[v] = u;
+                    }
+                }
+            }
+
+            const result = document.getElementById("result");
+
+            if (dist[destination] === INF) {
+                result.textContent = "No route is available.";
+                return;
+            }
+
+            // Reconstruct the shortest route
+            const path = [];
+            let current = destination;
+
+            while (current !== -1) {
+                path.unshift(places[current]);
+                current = parent[current];
+            }
+
+            result.innerHTML =
+                "<strong>Starting Point:</strong> " +
+                places[source] +
+                "<br><strong>Destination:</strong> " +
+                places[destination] +
+                "<br><strong>Shortest Route:</strong> " +
+                path.join(" &rarr; ") +
+                "<br><strong>Total Distance:</strong> " +
+                dist[destination] + " meters";
+        }
+
+        function showAllDistances() {
+            const list = document.getElementById("distanceList");
+
+            list.innerHTML = "";
+
+            for (let i = 0; i < places.length; i++) {
+                for (let j = i + 1; j < places.length; j++) {
+                    const distance = graph[i][j];
+
+                    if (distance !== INF) {
+                        const row = document.createElement("li");
+                        row.textContent =
+                            places[i] + " to " + places[j] +
+                            " : " + distance + " meters";
+                        list.appendChild(row);
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body>
+
+    <form onsubmit="findShortestPath(event)">
+        <table align="center" width="750" cellpadding="12">
+
+            <tr>
+                <td colspan="2" align="center">
+                    <h1>College Shortest Path Finder</h1>
+                    <p>Find the shortest route inside your college campus</p>
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="2" align="center">
+                    <span class="place">🏫</span>
+                    <span class="place">📚</span>
+                    <span class="place">🍽️</span>
+                    <span class="place">💻</span>
+                    <span class="place">🔬</span>
+                    <span class="place">🏛️</span>
+                    <br>
+                    <span class="caption">
+                        Main Gate | Library | Canteen |
+                        CSE Block | Laboratory | Auditorium
+                    </span>
+                </td>
+            </tr>
+
+            <tr>
+                <td>Starting Location:</td>
+                <td>
+                    <select id="source" required>
+                        <option value="0">Main Gate</option>
+                        <option value="1">Library</option>
+                        <option value="2">Canteen</option>
+                        <option value="3">CSE Block</option>
+                        <option value="4">Laboratory</option>
+                        <option value="5">Auditorium</option>
+                    </select>
+                </td>
+            </tr>
+
+            <tr>
+                <td>Destination Location:</td>
+                <td>
+                    <select id="destination" required>
+                        <option value="0">Main Gate</option>
+                        <option value="1">Library</option>
+                        <option value="2">Canteen</option>
+                        <option value="3">CSE Block</option>
+                        <option value="4">Laboratory</option>
+                        <option value="5">Auditorium</option>
+                    </select>
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="2" align="center">
+                    <input type="submit"
+                           value="Find Shortest Path">
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="2" align="center">
+                    <h2>Shortest Path Result</h2>
+                    <p id="result" aria-live="polite">
+                        Select your starting location and destination.
+                    </p>
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="2" align="center">
+                    <h2>Campus Connections</h2>
+                    <p>Distances between directly connected places</p>
+                    <ul id="distanceList" style="text-align:left"></ul>
+                    <button type="button"
+                            onclick="showAllDistances()">
+                        Show Campus Distances
+                    </button>
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="2" align="center">
+                    <p class="note">
+                        Data Structures Project using Graphs
+                        and Dijkstra's Shortest Path Algorithm.
+                    </p>
+                </td>
+            </tr>
+
+        </table>
+    </form>
+
+</body>
+</html>
